@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>The Bingo Machine</title>
+</head>
+<body>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+
+    <div id="history"></div>
+    <div id="draw"></div>
+    <div id="controls">
+        <input id="resetButton" type="button" onclick="reset();" value="Reset"/>
+        <input id="startStopButton" type="button" onclick="startStop();" value="Start"/>
+    </div>
+
+    <script type="text/javascript">
+        const domain = {
+            "width": 3200,
+            "height": 550,
+            "fontSize": 100,
+            "drawFontSize": 400
+        }
+
+        /**
+        * Shuffles array in place.
+        * @param {Array} a items An array containing the items.
+        * (from https://stackoverflow.com/questions/6274339/how-can-i-shuffle-an-array)
+        */
+        function shuffle(a) {
+            var j, x, i;
+            for (i = a.length - 1; i > 0; i--) {
+                j = Math.floor(Math.random() * (i + 1));
+                x = a[i];
+                a[i] = a[j];
+                a[j] = x;
+            }
+            return a;
+        }
+
+        const histPane = d3.select("#history").append("svg")
+            .attr("viewBox", [0, 0, domain.width, domain.height])
+            .attr("font-family", "sans-serif")
+            .attr("font-size", domain.fontSize)
+            .style("display", "block");
+
+        const drawPane = d3.select("#draw").append("svg")
+            .attr("viewBox", [0, 0, domain.width / 2, domain.height])
+            .attr("font-family", "sans-serif")
+            .attr("font-size", domain.drawFontSize)
+            .style("display", "block");
+
+        const resetButton = d3.select("#resetButton");
+        const startStopButton = d3.selectAll("#startStopButton");
+
+        var draws = [];
+        var currentDrawIndex = 0;
+        var timer = null;
+
+        function updateHistory(hist) {
+            console.log(hist);
+            var content = histPane.selectAll("text").data(hist, (d,i) => i);
+
+            content.enter().append("text")
+                .attr("x", (d,i) => domain.fontSize * 2 * (1 + i % 15))
+                .attr("y", (d,i) => domain.fontSize * Math.floor(1 + (i / 15)))
+                .attr("text-anchor", "end")
+                .attr("font-size", 0)
+                .text((d,i) => d)
+                .transition()
+                .attr("font-size", domain.fontSize);
+
+            content.text(d => d);
+            content.exit().remove();
+        }
+
+        function updateDraw(draw) {
+            var content;
+
+            if (draw < 0) {
+                content = drawPane.selectAll("text").data([], d => 1);
+            } else {
+                content = drawPane.selectAll("text").data([draw], d => 1);
+            }
+
+            content.enter().append("text")
+                .attr("x", (d,i) => domain.drawFontSize * 2 * (1 + i % 15))
+                .attr("y", (d,i) => domain.drawFontSize * Math.floor(1 + (i / 15)))
+                .attr("text-anchor", "middle")
+                .attr("fill", "black")
+                .attr("fill-opacity", 0)
+                .text((d,i) => d)
+                .transition()
+                .duration(300)
+                .attr("fill-opacity", 1)
+                .transition()
+                .duration(5000)
+                .delay(300)
+                .attr("fill", "red");
+
+            content
+                .transition()
+                .duration(300)
+                .attr("fill-opacity", 0)
+
+                .transition()
+                .duration(300)
+                .delay(300)
+                .text((d,i) => d)
+                .attr("fill", "black")
+                .attr("fill-opacity", 1)
+                
+                .transition()
+                .duration(5000)
+                .delay(600)
+                .attr("fill", "red");
+
+            content.exit().remove();
+        }
+
+        function reset() {
+            if (timer != null)
+                startStop();
+
+            draws = [];
+            for (var i = 0; i < 75; i++) { draws.push(i+1); }
+            shuffle(draws)
+            currentDrawIndex = 0;
+
+            updateHistory([]);
+            updateDraw(-1);
+        }
+
+        function startStop() {
+            if (timer != null) {
+                clearInterval(timer);
+                timer = null;
+                startStopButton.attr("value", "Start")
+            } else {
+                timer = setInterval(draw, 5000);
+                startStopButton.attr("value", "Stop");
+                draw();
+            }
+        }
+
+        function draw() {
+            console.log(`draw ${currentDrawIndex}`);
+            updateHistory(draws.slice(0, currentDrawIndex));
+            updateDraw(draws[currentDrawIndex]);
+            currentDrawIndex += 1;
+            if (currentDrawIndex > 75 && timer != null)
+                startStop();
+        }
+
+        reset();
+    </script>
+
+</body>
+</html>
