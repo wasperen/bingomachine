@@ -6,13 +6,55 @@
 </head>
 <body>
     <script src="https://d3js.org/d3.v5.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 
-    <div id="history"></div>
-    <div id="draw"></div>
-    <div id="controls">
-        <input id="resetButton" type="button" onclick="reset();" value="Reset"/>
-        <input id="startStopButton" type="button" onclick="startStop();" value="Start"/>
+
+    <div class="container">
+
+        <div class="row">
+            <div class="col s12">
+                <nav class="orange darken-4"><span class="center-align"><h2>Bingo Machine</h2></span></nav>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col s12">
+                <div class="card">
+                    <div id="history"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col s6 offset-s3">
+                <div class="card">
+                    <div id="draw"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col s12">
+                <div id="controls">
+                    <span class="waves-effect waves-light btn-large orange darken-4" id="resetButton"><i class="material-icons left">cached</i>Reset</span>
+                    <span class="dropdown-trigger btn-large orange darken-4" id="timingButton" data-target='timerDropdown'><i class="material-icons left">speed</i>Timing</span>
+                    <span class="waves-effect waves-light btn-large orange darken-4 right" id="startStopButton"><i class='material-icons left'>play_circle_outline</i>Start</span>
+                </div>
+            </div>
+        </div>
+
     </div>
+
+    <!-- Dropdown Structure -->
+    <ul id='timerDropdown' class='dropdown-content'>
+        <li><a href="#!"><i class="material-icons">looks_one</i>hare</a></li>
+        <li><a href="#!"><i class="material-icons">looks_two</i>fast</a></li>
+        <li><a href="#!"><i class="material-icons">looks_3</i>normal</a></li>
+        <li><a href="#!"><i class="material-icons">looks_4</i>slow</a></li>
+        <li><a href="#!"><i class="material-icons">looks_5</i>turtle</a></li>
+    </ul>
 
     <script type="text/javascript">
         const domain = {
@@ -51,14 +93,22 @@
             .style("display", "block");
 
         const resetButton = d3.select("#resetButton");
+        resetButton.on("click", reset);
+
         const startStopButton = d3.selectAll("#startStopButton");
+        startStopButton.on("click", startStop);
+
+        const timingButton = d3.select("#timingButton");
+        document.addEventListener('DOMContentLoaded', function() {
+            var elems = document.querySelectorAll('.dropdown-trigger');
+            var instances = M.Dropdown.init(elems, {});
+        });
 
         var draws = [];
         var currentDrawIndex = 0;
         var timer = null;
 
         function updateHistory(hist) {
-            console.log(hist);
             var content = histPane.selectAll("text").data(hist, (d,i) => i);
 
             content.enter().append("text")
@@ -96,7 +146,7 @@
                 .transition()
                 .duration(5000)
                 .delay(300)
-                .attr("fill", "red");
+                .attr("fill", "#e65100");
 
             content
                 .transition()
@@ -113,7 +163,7 @@
                 .transition()
                 .duration(5000)
                 .delay(600)
-                .attr("fill", "red");
+                .attr("fill", "#e65100");
 
             content.exit().remove();
         }
@@ -135,10 +185,10 @@
             if (timer != null) {
                 clearInterval(timer);
                 timer = null;
-                startStopButton.attr("value", "Start")
+                startStopButton.html("<i class='material-icons left'>play_circle_outline</i>Start")
             } else {
                 timer = setInterval(draw, 5000);
-                startStopButton.attr("value", "Stop");
+                startStopButton.html("<i class='material-icons left'>pause_circle_outline</i>Stop")
                 draw();
             }
         }
