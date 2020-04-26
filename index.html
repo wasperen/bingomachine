@@ -49,11 +49,11 @@
 
     <!-- Dropdown Structure -->
     <ul id='timerDropdown' class='dropdown-content'>
-        <li><a href="#!"><i class="material-icons">looks_one</i>hare</a></li>
-        <li><a href="#!"><i class="material-icons">looks_two</i>fast</a></li>
-        <li><a href="#!"><i class="material-icons">looks_3</i>normal</a></li>
-        <li><a href="#!"><i class="material-icons">looks_4</i>slow</a></li>
-        <li><a href="#!"><i class="material-icons">looks_5</i>turtle</a></li>
+        <li><a href="#!" onclick="setTiming('hare');" class="orange-text"><i class="material-icons">looks_one</i>hare</a></li>
+        <li><a href="#!" onclick="setTiming('fast');" class="orange-text"><i class="material-icons">looks_two</i>fast</a></li>
+        <li><a href="#!" onclick="setTiming('normal');" class="orange-text"><i class="material-icons">looks_3</i>normal</a></li>
+        <li><a href="#!" onclick="setTiming('slow');" class="orange-text"><i class="material-icons">looks_4</i>slow</a></li>
+        <li><a href="#!" onclick="setTiming('turtle');" class="orange-text"><i class="material-icons">looks_5</i>turtle</a></li>
     </ul>
 
     <script type="text/javascript">
@@ -62,6 +62,14 @@
             "height": 550,
             "fontSize": 100,
             "drawFontSize": 400
+        }
+
+        const timings = {
+            "hare": 2000,
+            "fast": 5000,
+            "normal": 7000,
+            "slow": 10000,
+            "turtle": 15000
         }
 
         /**
@@ -107,6 +115,13 @@
         var draws = [];
         var currentDrawIndex = 0;
         var timer = null;
+        var timing = "normal";
+
+        function timingMillis() {
+            if (timing in timings)
+                return timings[timing];
+            return timings['normal'];
+        }
 
         function updateHistory(hist) {
             var content = histPane.selectAll("text").data(hist, (d,i) => i);
@@ -140,29 +155,29 @@
                 .attr("fill", "black")
                 .attr("fill-opacity", 0)
                 .text((d,i) => d)
+
                 .transition()
                 .duration(300)
                 .attr("fill-opacity", 1)
+                
                 .transition()
-                .duration(5000)
-                .delay(300)
+                .duration(timingMillis())
                 .attr("fill", "#e65100");
 
             content
                 .transition()
-                .duration(300)
+                .duration(200)
                 .attr("fill-opacity", 0)
 
                 .transition()
                 .duration(300)
-                .delay(300)
+                .delay(200)
                 .text((d,i) => d)
                 .attr("fill", "black")
                 .attr("fill-opacity", 1)
                 
                 .transition()
-                .duration(5000)
-                .delay(600)
+                .duration(timingMillis())
                 .attr("fill", "#e65100");
 
             content.exit().remove();
@@ -187,9 +202,16 @@
                 timer = null;
                 startStopButton.html("<i class='material-icons left'>play_circle_outline</i>Start")
             } else {
-                timer = setInterval(draw, 5000);
+                timer = setInterval(draw, timingMillis());
                 startStopButton.html("<i class='material-icons left'>pause_circle_outline</i>Stop")
                 draw();
+            }
+        }
+
+        function setTiming(name) {
+            timing = name;
+            if (timer != null) {
+                startStop();
             }
         }
 
