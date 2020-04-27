@@ -3,11 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <title>The Bingo Machine</title>
-</head>
-<body>
-    <script src="https://d3js.org/d3.v5.min.js"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <style>
+        .switch label input[type=checkbox]:checked + .lever:after {
+            background-color: #e65100;
+        }
+    </style>
+</head>
+<body>
+    <script src="https://underscorejs.org/underscore-min.js"></script>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 
 
@@ -23,6 +29,16 @@
             <div class="col s12">
                 <div class="card">
                     <div id="history"></div>
+                    <div class="card-action">
+                        <div class="switch">
+                            <label>
+                              Picked
+                              <input id="orderCheckbox" type="checkbox" onclick="switchOrder(this);">
+                              <span class="lever orange lighten-2"></span>
+                              Natural
+                            </label>
+                          </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -100,6 +116,8 @@
             .attr("font-size", domain.drawFontSize)
             .style("display", "block");
 
+        const orderCheckbox = d3.select("#orderCheckbox");
+
         const resetButton = d3.select("#resetButton");
         resetButton.on("click", reset);
 
@@ -118,6 +136,7 @@
         var currentDrawIndex = 0;
         var timer = null;
         var timing = "normal";
+        var orderType = "pickedOrder";
 
         function timingMillis() {
             if (timing in timings)
@@ -129,34 +148,38 @@
             var content = histPane.selectAll("text").data(hist, (d,i) => i);
 
             content.enter().append("text")
-                .attr("x", (d,i) => domain.fontSize * 2 * (1 + i % 15))
-                .attr("y", (d,i) => domain.fontSize * Math.floor(1 + (i / 15)))
+                .attr("x", d => domain.fontSize * 2 * d[orderType].x)
+                .attr("y", d => domain.fontSize * d[orderType].y)
                 .attr("text-anchor", "end")
                 .attr("font-size", 0)
-                .text((d,i) => d)
-                .transition()
-                .attr("font-size", domain.fontSize);
+                .text(d => d.drawn ? d.number : '')
+                .attr("font-size", d => d.drawn ? domain.fontSize : 0);
 
-            content.text(d => d);
+            content
+                .transition()
+                .attr("x", d => domain.fontSize * 2 * d[orderType].x)
+                .attr("y", d => domain.fontSize * d[orderType].y)
+                .attr("font-size", d => d.drawn ? domain.fontSize : 0)
+                .text(d => d.drawn ? d.number : '');
             content.exit().remove();
         }
 
         function updateDraw(draw) {
             var content;
 
-            if (draw < 0) {
+            if (draw == null) {
                 content = drawPane.selectAll("text").data([], d => 1);
             } else {
                 content = drawPane.selectAll("text").data([draw], d => 1);
             }
 
             content.enter().append("text")
-                .attr("x", (d,i) => domain.drawFontSize * 2 * (1 + i % 15))
-                .attr("y", (d,i) => domain.drawFontSize * Math.floor(1 + (i / 15)))
+                .attr("x", domain.drawFontSize * 2)
+                .attr("y", domain.drawFontSize)
                 .attr("text-anchor", "middle")
                 .attr("fill", "black")
                 .attr("fill-opacity", 0)
-                .text((d,i) => d)
+                .text(d => d.number)
 
                 .transition()
                 .duration(300)
@@ -174,7 +197,7 @@
                 .transition()
                 .duration(300)
                 .delay(200)
-                .text((d,i) => d)
+                .text(d => d.number)
                 .attr("fill", "black")
                 .attr("fill-opacity", 1)
                 
@@ -189,13 +212,29 @@
             if (timer != null)
                 startStop();
 
-            draws = [];
-            for (var i = 0; i < 75; i++) { draws.push(i+1); }
-            shuffle(draws)
+            var drawNumbers = [];
+            for (var i = 0; i < 75; i++) { drawNumbers.push(i+1); }
+            shuffle(drawNumbers);
+            draws = _.map(drawNumbers, (d, i) => {
+                console.log(d);
+                return {
+                    "number": d,
+                    "drawn": false,
+                    "naturalOrder": {
+                        "x": 1 + ((d-1) % 15),
+                        "y": 1 + Math.floor((d-1) / 15)
+                    },
+                    "pickedOrder": {
+                        "x": 1 + (i % 15),
+                        "y": 1 + Math.floor(i / 15)
+                    }
+                }
+            });
             currentDrawIndex = 0;
 
+            orderCheckbox.property("checked", false);
             updateHistory([]);
-            updateDraw(-1);
+            updateDraw(null);
         }
 
         function startStop() {
@@ -219,12 +258,22 @@
         }
 
         function draw() {
-            console.log(`draw ${currentDrawIndex}`);
-            updateHistory(draws.slice(0, currentDrawIndex));
+            updateHistory(draws);
+            draws[currentDrawIndex].drawn = true;
             updateDraw(draws[currentDrawIndex]);
             currentDrawIndex += 1;
-            if (currentDrawIndex > 75 && timer != null)
+            console.log(`draw ${currentDrawIndex}`);
+            if (currentDrawIndex >= 75 && timer != null) {
+                updateDraw(null);
                 startStop();
+                updateHistory(draws);
+            }
+        }
+
+        function switchOrder(checkbox) {
+            console.log(checkbox.checked);
+            orderType = checkbox.checked ? "naturalOrder" : "pickedOrder";
+            updateHistory(draws);
         }
 
         reset();
