@@ -55,7 +55,7 @@
             <div class="col s12">
                 <div id="controls">
                     <span class="waves-effect waves-light btn-large orange darken-4" id="resetButton"><i class="material-icons left">cached</i>Reset</span>
-                    <span class="dropdown-trigger btn-large orange darken-4" id="timingButton" data-target='timerDropdown'><i class="material-icons left">speed</i>Timing (<span id="currentTimingInfo">normal</span>)</span>
+                    <a class="dropdown-trigger btn-large orange darken-4" id="timingButton" data-target='timerDropdown'><i class="material-icons left">speed</i>Timing (<span id="currentTimingInfo">normal</span>)</a>
                     <span class="waves-effect waves-light btn-large orange darken-4 right" id="startStopButton"><i class='material-icons left'>play_circle_outline</i>Start</span>
                 </div>
             </div>
@@ -127,7 +127,11 @@
         const timingButton = d3.select("#timingButton");
         document.addEventListener('DOMContentLoaded', function() {
             var elems = document.querySelectorAll('.dropdown-trigger');
+            console.log(elems);
             var instances = M.Dropdown.init(elems, {});
+
+            var elems = document.querySelectorAll('.modal');
+            var instances = M.Modal.init(elems, {});
         });
 
         const currentTimingInfo = d3.select("#currentTimingInfo");
