@@ -128,7 +128,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             var elems = document.querySelectorAll('.dropdown-trigger');
             console.log(elems);
-            var instances = M.Dropdown.init(elems, {});
+            var instances = M.Dropdown.init(elems, { "coverTrigger": false });
 
             var elems = document.querySelectorAll('.modal');
             var instances = M.Modal.init(elems, {});
