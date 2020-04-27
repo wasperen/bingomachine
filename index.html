@@ -39,7 +39,7 @@
             <div class="col s12">
                 <div id="controls">
                     <span class="waves-effect waves-light btn-large orange darken-4" id="resetButton"><i class="material-icons left">cached</i>Reset</span>
-                    <span class="dropdown-trigger btn-large orange darken-4" id="timingButton" data-target='timerDropdown'><i class="material-icons left">speed</i>Timing</span>
+                    <span class="dropdown-trigger btn-large orange darken-4" id="timingButton" data-target='timerDropdown'><i class="material-icons left">speed</i>Timing (<span id="currentTimingInfo">normal</span>)</span>
                     <span class="waves-effect waves-light btn-large orange darken-4 right" id="startStopButton"><i class='material-icons left'>play_circle_outline</i>Start</span>
                 </div>
             </div>
@@ -111,6 +111,8 @@
             var elems = document.querySelectorAll('.dropdown-trigger');
             var instances = M.Dropdown.init(elems, {});
         });
+
+        const currentTimingInfo = d3.select("#currentTimingInfo");
 
         var draws = [];
         var currentDrawIndex = 0;
@@ -210,6 +212,7 @@
 
         function setTiming(name) {
             timing = name;
+            currentTimingInfo.html(timing);
             if (timer != null) {
                 startStop();
             }
